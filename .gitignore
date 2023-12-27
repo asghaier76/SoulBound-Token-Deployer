@@ -1,14 +1,48 @@
+# hardhat files
 hardhat/node_modules
 hardhat/.env
-
-# Hardhat files
 hardhat/cache
 hardhat/artifacts
-
-# TypeChain files
 hardhat/typechain
 hardhat/typechain-types
 
 # solidity-coverage files
 hardhat/coverage
 hardhat/coverage.json
+
+
+# NestJS compiled output
+/sbt-api/dist
+/sbt-api/node_modules
+
+# NestJS Logs
+/sbt-api/logs
+/sbt-api/*.log
+/sbt-api/npm-debug.log*
+/sbt-api/pnpm-debug.log*
+/sbt-api/yarn-debug.log*
+/sbt-api/yarn-error.log*
+/sbt-api/lerna-debug.log*
+
+# NestJS Tests
+/sbt-api/coverage
+/sbt-api/.nyc_output
+
+# IDEs and editors
+.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# OS
+.DS_Store
