@@ -5,6 +5,7 @@ import 'hardhat-abi-exporter';
 import { HardhatUserConfig } from 'hardhat/config';
 import "@nomicfoundation/hardhat-verify";
 import "hardhat-gas-reporter"
+import 'xdeployer';
 
 dotenv.config();
 
@@ -36,8 +37,8 @@ const config = {
       url: `https://polygon-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
       accounts: [process.env.PRIVATE_KEY as string]
     },
-    goerli: {
-      url: `https://eth-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+    sepolia: {
+      url: `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
       accounts: [process.env.PRIVATE_KEY as string]
     },
     mainnet: {
@@ -49,7 +50,7 @@ const config = {
     apiKey: {
       polygonMumbai: process.env.POLYGONSCAN_API_KEY as string,
       polygon: process.env.POLYGONSCAN_API_KEY as string,
-      goerli: process.env.ETHERSCAN_API_KEY as string,
+      seploia: process.env.ETHERSCAN_API_KEY as string,
       mainnet: process.env.ETHERSCAN_API_KEY as string
     }
   },
@@ -59,6 +60,18 @@ const config = {
   },
   abiExporter: {
     path: '../types/abi'
+  },
+  xdeploy: {
+    contract: 'SoulBoundFactory',
+    salt: 'SoulBoundFactorySaltPhrase',
+    signer: process.env.PRIVATE_KEY,
+    networks: [
+      'sepolia'
+    ],
+    rpcUrls: [
+      `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+    ],
+    gasLimit: 5 * 10 ** 6
   }
 } satisfies HardhatUserConfig;
 
