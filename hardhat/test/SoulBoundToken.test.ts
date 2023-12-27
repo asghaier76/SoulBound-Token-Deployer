@@ -18,7 +18,8 @@ describe("SoulBoundToken Contract", function () {
     contract = (await proxy.deploy(
         'SoulBoundToken',
         'SBT',
-        minter
+        owner.address,
+        minter.address
     )) as unknown as SoulBoundToken;
     const sbt = contract.deploymentTransaction();
     await sbt?.wait();

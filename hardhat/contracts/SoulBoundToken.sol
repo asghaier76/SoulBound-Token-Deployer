@@ -12,8 +12,8 @@ contract SoulBoundToken is ERC721, AccessControl {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    constructor(string memory _name, string memory _symbol, address _minter) ERC721(_name, _symbol) {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    constructor(string memory _name, string memory _symbol, address _admin, address _minter) ERC721(_name, _symbol) {
+        _grantRole(DEFAULT_ADMIN_ROLE, _admin);
         _grantRole(MINTER_ROLE, _minter);
     }
 
