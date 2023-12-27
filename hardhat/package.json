@@ -4,7 +4,14 @@
   "description": "SoulBound NFT Contract",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "node": "hardhat node",
+    "compile": "hardhat compile",
+    "compile:clean": "hardhat clean && npm run compile",
+    "deploy:factory": "hardhat xdeploy",
+    "export:abi": "hardhat export-abi",
+    "test": "hardhat check && REPORT_GAS=true hardhat test",
+    "test:coverage": "hardhat coverage",
+    "clean": "rm -rf node_modules"
   },
   "keywords": [
     "SoulBound",
