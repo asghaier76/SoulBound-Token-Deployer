@@ -1,9 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Chains, Networks } from 'src/types/enums';
 import { getContractInterface } from 'src/types/abi/contractInterface';
 import { AlchemyProvider, Contract, Wallet, randomBytes } from 'ethers';
+import { MintTokenDto } from './dto/mint-token.dto';
+import { PrismaError } from 'src/prisma/prisma.errors';
+import { Prisma } from '@prisma/client';
 
 const CONTRACT_DEPLYED_EVENT =
   '0x33c981baba081f8fd2c52ac6ad1ea95b6814b4376640f55689051f6584729688';
@@ -27,6 +30,66 @@ export class ContractService {
         },
       });
       return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async mintToken(mintRequest: MintTokenDto, userId: string) {
+    try {
+      await this.prisma.contract.findFirstOrThrow({
+        where: {
+          chain: mintRequest.chain as string,
+          network: mintRequest.network as string,
+          contractAddress: mintRequest.contractAddress,
+          userId,
+        },
+      });
+
+      const response = await this.callContractMethod(
+        mintRequest.chain.toLowerCase() as Chains,
+        mintRequest.network.toLowerCase() as Networks,
+        mintRequest.contractAddress,
+        'safeMint',
+        [mintRequest.walletAddress],
+      );
+      return { ...response, address: mintRequest.walletAddress };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error?.code === PrismaError.RecordDoesNotExist
+      ) {
+        throw new HttpException(
+          'No contract record exists',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw new HttpException(
+        'Something went wrong',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async callContractMethod(
+    chain: Chains,
+    network: Networks,
+    address: string,
+    methodName: string,
+    args: any[],
+  ) {
+    try {
+      const signer = this.getSigner(chain, network);
+
+      const tokenContract = new Contract(
+        address,
+        getContractInterface('token'),
+        signer,
+      );
+
+      const transaction = await tokenContract[methodName](...args);
+      const receipt = await transaction.wait();
+      return { txnHash: receipt.hash, blockNumber: receipt.blockNumber };
     } catch (error) {
       throw error;
     }

@@ -10,6 +10,8 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ContractService } from './contract.service';
 import { ContractEntity } from './entities/contract.entity';
 import { UserId } from 'src/auth/decorators/user-id.decorator';
+import { MintTokenDto } from './dto/mint-token.dto';
+import { MintResponseEntity } from './entities/mint-response.entity';
 
 @ApiTags('Contract')
 @Controller('contract')
@@ -28,5 +30,19 @@ export class ContractController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   deploy(@Body() contract: CreateContractDto, @UserId() userId: string) {
     return this.contractService.deployContract(contract, userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('mint')
+  @ApiOperation({ summary: 'Mints SBT Token in a contract' })
+  @ApiResponse({
+    status: 200,
+    description: 'Token successfully minted',
+    type: MintResponseEntity,
+  })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  mint(@Body() data: MintTokenDto, @UserId() userId: string) {
+    return this.contractService.mintToken(data, userId);
   }
 }
