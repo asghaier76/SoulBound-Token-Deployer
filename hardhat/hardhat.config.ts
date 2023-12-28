@@ -59,7 +59,7 @@ const config = {
     currency: 'USD'
   },
   abiExporter: {
-    path: '../types/abi'
+    path: '../sbt-api/src/types/abi'
   },
   xdeploy: {
     contract: 'SoulBoundFactory',
