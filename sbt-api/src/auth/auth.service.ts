@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -8,6 +8,8 @@ import { PrismaError } from 'src/prisma/prisma.errors';
 
 @Injectable()
 export class AuthService {
+  private logger = new Logger('Auth Service');
+
   constructor(
     private readonly userService: UserService,
     private jwtService: JwtService,
@@ -21,12 +23,15 @@ export class AuthService {
         ...userData,
         password: hashedPassword,
       });
+      this.logger.log('New user account created ', createdUser.id);
       return {
         ...createdUser,
         password: undefined,
         key: undefined,
       };
     } catch (error) {
+      this.logger.error('Error encountered: ', error);
+
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error?.code === PrismaError.UniqueConstraintFailed
@@ -56,12 +61,13 @@ export class AuthService {
       if (!passwordMatch) {
         throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
       }
-
+      this.logger.log('User successfuly logged in', user.id);
       return {
         jwtToken: this.jwtService.sign({ username: user.email, sub: user.id }),
         email,
       };
     } catch (error) {
+      this.logger.error('An error occured: ', error);
       throw error;
     }
   }

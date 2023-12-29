@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Chains, Networks } from 'src/types/enums';
@@ -10,10 +10,12 @@ import { Prisma } from '@prisma/client';
 import { UserService } from 'src/user/user.service';
 import { retrieveWallet } from 'src/user/utils/wallet-key-util';
 
-const CONTRACT_DEPLYED_EVENT =
+const CONTRACT_DEPLOYED_EVENT =
   '0x33c981baba081f8fd2c52ac6ad1ea95b6814b4376640f55689051f6584729688';
 @Injectable()
 export class ContractService {
+  private logger = new Logger('Contract Service');
+
   constructor(
     private prisma: PrismaService,
     private userService: UserService,
@@ -23,6 +25,11 @@ export class ContractService {
     try {
       const { contractAddress, deployerAddress } =
         await this.deployUsingFactory(contract, userId);
+      this.logger.log(
+        'Deploying a new SBT contract on ',
+        contract.chain,
+        contract.network,
+      );
       const result = await this.prisma.contract.create({
         data: {
           name: contract.name,
@@ -34,8 +41,15 @@ export class ContractService {
           deployerAddress,
         },
       });
+      this.logger.log(
+        'New SBT contract deployed and saved ',
+        contract.chain,
+        contract.network,
+        contractAddress,
+      );
       return result;
     } catch (error) {
+      this.logger.error('An error ocured: ', error);
       throw error;
     }
   }
@@ -50,7 +64,12 @@ export class ContractService {
           userId,
         },
       });
-
+      this.logger.log(
+        'New SBT token mint is getting submitted ... ',
+        mintRequest.chain,
+        mintRequest.network,
+        mintRequest.contractAddress,
+      );
       const response = await this.callContractMethod(
         userId,
         mintRequest.chain.toLowerCase() as Chains,
@@ -59,8 +78,15 @@ export class ContractService {
         'safeMint',
         [mintRequest.walletAddress],
       );
+      this.logger.log(
+        'New SBT token mint has been minted in transaction ... ',
+        mintRequest.chain,
+        mintRequest.network,
+        response.txnHash,
+      );
       return { ...response, address: mintRequest.walletAddress };
     } catch (error) {
+      this.logger.error('An error occured: ', error);
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error?.code === PrismaError.RecordDoesNotExist
@@ -98,6 +124,7 @@ export class ContractService {
       const receipt = await transaction.wait();
       return { txnHash: receipt.hash, blockNumber: receipt.blockNumber };
     } catch (error) {
+      this.logger.error('An error ocured: ', error);
       throw error;
     }
   }
@@ -113,7 +140,11 @@ export class ContractService {
         getContractInterface('factory'),
         signer,
       );
-
+      this.logger.log(
+        'Submitting SBT contract deployment transaction ... ',
+        chain,
+        network,
+      );
       const transaction = await factoryContract.deployContract(
         contractObject.name,
         contractObject.symbol,
@@ -123,15 +154,21 @@ export class ContractService {
       );
 
       const receipt = await transaction.wait();
-
+      this.logger.log(
+        'Transction of SBT contract deployment was mined',
+        chain,
+        network,
+        receipt.hash,
+      );
       const event = receipt?.logs.find(
-        (log) => log.topics[0] === CONTRACT_DEPLYED_EVENT,
+        (log) => log.topics[0] === CONTRACT_DEPLOYED_EVENT,
       );
 
       const contractAddress = event?.args[1];
 
       return { contractAddress, deployerAddress: signer.address };
     } catch (error) {
+      this.logger.error('An error ocured: ', error);
       throw error;
     }
   }
