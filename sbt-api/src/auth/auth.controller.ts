@@ -2,8 +2,8 @@ import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserDto } from 'src/user/dto/user.dto';
-import { UserEntity } from 'src/user/entities/user.entity';
-import { AuthEntity } from './entities/auth.entity';
+import { UserResponseEntity } from 'src/user/entities/user.entity';
+import { AuthResponseEntity } from './entities/auth.entity';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 
 @ApiTags('Auth')
@@ -16,7 +16,7 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: 'User recorde successfully created',
-    type: UserEntity,
+    type: UserResponseEntity,
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
   register(@Body() registerUserDto: UserDto) {
@@ -26,7 +26,11 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @ApiOperation({ summary: 'Authenticates a user' })
-  @ApiResponse({ status: 200, description: 'User Logged in', type: AuthEntity })
+  @ApiResponse({
+    status: 200,
+    description: 'User Logged in',
+    type: AuthResponseEntity,
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   login(@Body() loginUserDto: UserDto) {
     return this.authService.getAuthenticatedUser(

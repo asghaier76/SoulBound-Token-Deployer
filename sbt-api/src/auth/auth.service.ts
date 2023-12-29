@@ -24,6 +24,7 @@ export class AuthService {
       return {
         ...createdUser,
         password: undefined,
+        key: undefined,
       };
     } catch (error) {
       if (

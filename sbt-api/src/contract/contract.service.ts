@@ -3,21 +3,26 @@ import { CreateContractDto } from './dto/create-contract.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Chains, Networks } from 'src/types/enums';
 import { getContractInterface } from 'src/types/abi/contractInterface';
-import { AlchemyProvider, Contract, Wallet, randomBytes } from 'ethers';
+import { AlchemyProvider, Contract, randomBytes } from 'ethers';
 import { MintTokenDto } from './dto/mint-token.dto';
 import { PrismaError } from 'src/prisma/prisma.errors';
 import { Prisma } from '@prisma/client';
+import { UserService } from 'src/user/user.service';
+import { retrieveWallet } from 'src/user/utils/wallet-key-util';
 
 const CONTRACT_DEPLYED_EVENT =
   '0x33c981baba081f8fd2c52ac6ad1ea95b6814b4376640f55689051f6584729688';
 @Injectable()
 export class ContractService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private userService: UserService,
+  ) {}
 
   async deployContract(contract: CreateContractDto, userId: string) {
     try {
       const { contractAddress, deployerAddress } =
-        await this.deployUsingFactory(contract);
+        await this.deployUsingFactory(contract, userId);
       const result = await this.prisma.contract.create({
         data: {
           name: contract.name,
@@ -47,6 +52,7 @@ export class ContractService {
       });
 
       const response = await this.callContractMethod(
+        userId,
         mintRequest.chain.toLowerCase() as Chains,
         mintRequest.network.toLowerCase() as Networks,
         mintRequest.contractAddress,
@@ -72,6 +78,7 @@ export class ContractService {
   }
 
   async callContractMethod(
+    userId: string,
     chain: Chains,
     network: Networks,
     address: string,
@@ -79,7 +86,7 @@ export class ContractService {
     args: any[],
   ) {
     try {
-      const signer = this.getSigner(chain, network);
+      const signer = await this.getSigner(chain, network, userId);
 
       const tokenContract = new Contract(
         address,
@@ -95,11 +102,11 @@ export class ContractService {
     }
   }
 
-  async deployUsingFactory(contractObject: CreateContractDto) {
+  async deployUsingFactory(contractObject: CreateContractDto, userId: string) {
     try {
       const chain = contractObject.chain.toLowerCase() as Chains;
       const network = contractObject.network.toLowerCase() as Networks;
-      const signer = this.getSigner(chain, network);
+      const signer = await this.getSigner(chain, network, userId);
 
       const factoryContract = new Contract(
         process.env.FACTORY_CONTRACT_ADDRESS,
@@ -150,14 +157,15 @@ export class ContractService {
     return new AlchemyProvider(providerNetwork, process.env.ALCHEMY_API_KEY);
   }
 
-  getSigner(chain: Chains, network: Networks) {
-    if (!process.env.PRIVATE_KEY) {
-      const message = 'The application private key is not provided';
-      // this.logger.error(message);
-      throw new Error(message);
+  async getSigner(chain: Chains, network: Networks, userId: string) {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new HttpException(
+        'No contract record exists',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-
-    const wallet = new Wallet(process.env.PRIVATE_KEY);
+    const wallet = await retrieveWallet(user.key);
     const provider = this.getEthersProvider(chain, network);
     return wallet.connect(provider);
   }
