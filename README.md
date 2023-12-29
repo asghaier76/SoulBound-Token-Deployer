@@ -147,6 +147,40 @@ Response:
 ]
 ```
 
+## ENV Variable
+The backend app has a .env.sample file and mainly the app will require to specify the Facroy contract address once deployed, the alchemy api key which is used for the JSON RPC provider and AWS keys for the AWS-KMS client.
+
+For the AWS-KMS keys, first a new KMS is to be created and then a new ploicy as JSON need to be added and then attached to the IAM user used. Here is an example of the policy JSON file, where the reource is the AWS-KMS key created
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowUseOfKMSKey",
+            "Effect": "Allow",
+            "Action": [
+                "kms:Decrypt",
+                "kms:GenerateDataKey"
+            ],
+            "Resource": "arn:aws:kms:us-east-1:xxxxxxx:key/xxxxx......"
+        }
+    ]
+}
+```
+
+Here is the sample env file content
+
+```
+
+DATABASE_URL="file:./dev.db"
+FACTORY_CONTRACT_ASSRESS=___PLACEHOLDER____
+ALCHEMY_API_KEY=___PLACEHOLDER____
+KMS_GENERATOR_KEY=___PLACEHOLDER____
+AWS_ACCESS_KEY=___PLACEHOLDER____
+AWS_SECRET_KEY=___PLACEHOLDER____
+```
+
 ## Docker section
 The app is dockerized to enable running it as a container. The dockerfile icluded builds stages to enable building the docker image to target local development or build for production.
 
