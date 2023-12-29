@@ -169,7 +169,8 @@ For the AWS-KMS keys, first a new KMS is to be created and then a new ploicy as 
 }
 ```
 
-Here is the sample env file content
+Here is the sample env file content. The database url can be defined as a local file and for testing the following Facory contract address can be used on both Mumbai and Sepolia
+FACTORY_CONTRACT_ADDRESS=0x2365BB72D94b0A1F0DB02C92B4bd5018f44C54f8
 
 ```
 
