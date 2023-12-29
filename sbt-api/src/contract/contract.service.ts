@@ -103,6 +103,12 @@ export class ContractService {
     }
   }
 
+  async getContracts(userId) {
+    return await this.prisma.contract.findMany({
+      where: { userId },
+    });
+  }
+
   async callContractMethod(
     userId: string,
     chain: Chains,

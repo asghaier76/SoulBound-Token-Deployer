@@ -125,6 +125,28 @@ Response:
 }
 ```
 
+- `GET contract` , this endpoint will allow to retrieve the list of all deployed contracts by a user. It uses the passed JWT token in the Bearer to extract the userId and get all contracts owned by that user. The response will be a list of all contracts.
+
+```
+Response:
+
+[
+    {
+        "id": "string",
+        "createdAt": "Date String ISO Format",
+        "updatedAt": "Date String ISO Format",
+        "contractAddress": "string",
+        "deployerAddress": "string",
+        "userId": "string",
+        "chain": "string",
+        "network": "string",
+        "name": "string",
+        "symbol": "string"
+    },
+    ...
+]
+```
+
 ## Docker section
 The app is dockerized to enable running it as a container. The dockerfile icluded builds stages to enable building the docker image to target local development or build for production.
 

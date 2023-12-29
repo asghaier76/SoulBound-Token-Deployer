@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Param } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -44,5 +44,21 @@ export class ContractController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   mint(@Body() data: MintTokenDto, @UserId() userId: string) {
     return this.contractService.mintToken(data, userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get()
+  @ApiOperation({
+    summary: 'Retruns list of all deployed contracts for a user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved all deployed contracts',
+    type: MintResponseEntity,
+  })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  getContracts(@UserId() userId: string) {
+    return this.contractService.getContracts(userId);
   }
 }
